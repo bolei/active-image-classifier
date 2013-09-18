@@ -52,20 +52,14 @@ public class DataPreprocessor {
 	}
 
 	public Instances getTrainingData(
-			HashMap<Integer, RawImageInstance> rawInstance,
+			HashMap<Integer, RawImageInstance> rawInstances,
 			List<Integer> trainIds) {
 
 		// init attributes
-		ArrayList<Attribute> atts = new ArrayList<>();
-		for (int i = 0; i < FEATURE_LENTH; i++) {
-			atts.add(new Attribute("att" + i));
-		}
-		atts.add(new Attribute("label"));
-
-		Instances data = new Instances("MyRelation", atts, 0);
+		Instances data = createEmptyInstances();
 
 		for (int id : trainIds) {
-			RawImageInstance oneInstance = rawInstance.get(id);
+			RawImageInstance oneInstance = rawInstances.get(id);
 			for (double[] feature : oneInstance.getFeatures()) {
 				double[] vals = Arrays.copyOf(feature, FEATURE_LENTH + 1);
 				vals[FEATURE_LENTH] = oneInstance.getLabel();
@@ -76,10 +70,32 @@ public class DataPreprocessor {
 		return data;
 	}
 
-	public HashMap<Integer, Instances> getTestData(
-			HashMap<Integer, RawImageInstance> rawInstance) {
-		// TODO
-		return null;
+	public HashMap<Integer, Instances> getDataGroupedByImage(
+			HashMap<Integer, RawImageInstance> rawInstances) {
+		HashMap<Integer, Instances> testData = new HashMap<>();
 
+		for (int id : rawInstances.keySet()) {
+
+			// init attributes
+			Instances data = createEmptyInstances();
+			RawImageInstance oneInstance = rawInstances.get(id);
+			for (double[] feature : oneInstance.getFeatures()) {
+				data.add(new DenseInstance(1.0d, feature));
+			}
+			data.setClassIndex(data.numAttributes() - 1);
+			testData.put(id, data);
+		}
+
+		return testData;
+	}
+
+	private Instances createEmptyInstances() {
+		ArrayList<Attribute> atts = new ArrayList<>();
+		for (int i = 0; i < FEATURE_LENTH; i++) {
+			atts.add(new Attribute("att" + i));
+		}
+		atts.add(new Attribute("label"));
+		Instances data = new Instances("MyRelation", atts, 0);
+		return data;
 	}
 }
