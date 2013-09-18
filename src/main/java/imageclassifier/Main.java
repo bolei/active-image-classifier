@@ -8,13 +8,14 @@ import java.util.Properties;
 import java.util.Set;
 
 import weka.classifiers.trees.RandomForest;
+import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
 
-		int numClassifiers = 3;
+		int numClassifiers = 2;
 
 		ImageDataLoader dataLoader = new ImageDataLoader();
 		DataPreprocessor preProcessor = new DataPreprocessor();
@@ -27,28 +28,39 @@ public class Main {
 		prop.load(Main.class.getClassLoader()
 				.getResourceAsStream(paramFileName));
 
+		System.err.println("Loading raw data...");
 		HashMap<Integer, RawImageInstance> rawInstances = dataLoader
 				.loadImageData(prop.getProperty("dataFolder"));
 
 		int labelSize = Integer.parseInt(prop.getProperty("labelSize"));
 		List<Integer> trainIds = preProcessor.getTrainImgIds(rawInstances,
 				labelSize);
+
+		System.err.println("Generating training data...");
 		Instances trainData = preProcessor.getTrainingData(rawInstances,
 				trainIds);
+
+		System.err.println("Generating entire data...");
 		HashMap<Integer, Instances> entireData = preProcessor
 				.getDataGroupedByImage(rawInstances);
 
+		System.err.println("Generating test data...");
 		HashMap<Integer, Instances> testData = new HashMap<>(entireData);
 		for (int id : trainIds) {
 			testData.remove(id);
 		}
 
+		System.err.println("Training classifiers...");
+
 		// train classifier
 		RandomForest[] rf = new RandomForest[numClassifiers];
 		for (int i = 0; i < numClassifiers; i++) {
 			rf[i] = new RandomForest();
+			rf[i].setNumTrees(i * 10);
 			rf[i].buildClassifier(trainData);
 		}
+
+		System.err.println("Classifiers trained. Tvalutating accuracy...");
 
 		// get starting accuracy
 		float[] accuracies = new float[numClassifiers];
@@ -62,31 +74,48 @@ public class Main {
 		evaluator
 				.printEvaluationResult(numImgSeen, numLabelRequest, accuracies);
 
-		// begin test
+		System.err.println("Active learning...");
+
+		// begin active learning
 		Set<Integer> labelSet = new HashSet<>();
 		for (int id : testData.keySet()) {
+			numImgSeen++;
+			Instances curInstances = testData.get(id);
+			System.err.println("input image: " + id);
 			labelSet.clear();
 			for (int i = 0; i < numClassifiers; i++) {
-				int label = predictor
-						.makeOnePrediction(rf[i], testData.get(id));
+				int label = predictor.makeOnePrediction(rf[i], curInstances);
 				labelSet.add(label);
 			}
 			if (labelSet.size() > 1) { // disagree with the label
-
+				System.err.println("Classifiers disagree. request label");
 				// request label
-				int label = rawInstances.get(id).getLabel();
+				String labelStr = Integer.toString(rawInstances.get(id)
+						.getLabel());
 				numLabelRequest++;
-				for (int i = 0; i < testData.get(id).numInstances(); i++) {
-					Instance inst = testData.get(id).get(i);
-					inst.setClassValue(label);
-					trainData.add(inst);
+				for (int i = 0; i < curInstances.numInstances(); i++) {
+					Instance inst = curInstances.get(i);
+					double[] oldValues = inst.toDoubleArray();
+
+					Instance newInst = new DenseInstance(
+							DataPreprocessor.FEATURE_LENTH + 1);
+					for (int j = 0; j < DataPreprocessor.FEATURE_LENTH; j++) {
+						newInst.setValue(curInstances.attribute(j),
+								oldValues[j]);
+					}
+					newInst.setValue(curInstances
+							.attribute(DataPreprocessor.FEATURE_LENTH),
+							labelStr);
+					trainData.add(newInst);
 				}
+				System.err.println("Train again the classifiers...");
 				// train again
 				for (int i = 0; i < numClassifiers; i++) {
 					rf[i] = new RandomForest();
 					rf[i].buildClassifier(trainData);
 				}
 
+				System.err.println("Reevaluating the classifiers...");
 				// reevaluate accuracies
 				Arrays.fill(accuracies, 0f);
 				for (int i = 0; i < numClassifiers; i++) {

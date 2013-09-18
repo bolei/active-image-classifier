@@ -1,7 +1,6 @@
 package imageclassifier;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -11,11 +10,12 @@ import java.util.Random;
 
 import weka.core.Attribute;
 import weka.core.DenseInstance;
+import weka.core.Instance;
 import weka.core.Instances;
 
 public class DataPreprocessor {
 
-	private static final int FEATURE_LENTH = 128;
+	public static final int FEATURE_LENTH = 128;
 
 	private static List<Integer> trainImgIds;
 
@@ -59,11 +59,16 @@ public class DataPreprocessor {
 		Instances data = createEmptyInstances();
 
 		for (int id : trainIds) {
-			RawImageInstance oneInstance = rawInstances.get(id);
-			for (double[] feature : oneInstance.getFeatures()) {
-				double[] vals = Arrays.copyOf(feature, FEATURE_LENTH + 1);
-				vals[FEATURE_LENTH] = oneInstance.getLabel();
-				data.add(new DenseInstance(1.0d, vals));
+			RawImageInstance oneImage = rawInstances.get(id);
+			String labelStr = Integer.toString(oneImage.getLabel());
+			for (double[] feature : oneImage.getFeatures()) {
+
+				Instance inst = new DenseInstance(FEATURE_LENTH + 1);
+				for (int i = 0; i < FEATURE_LENTH; i++) {
+					inst.setValue(data.attribute(i), feature[i]);
+				}
+				inst.setValue(data.attribute(FEATURE_LENTH), labelStr);
+				data.add(inst);
 			}
 		}
 		data.setClassIndex(data.numAttributes() - 1);
@@ -72,7 +77,7 @@ public class DataPreprocessor {
 
 	public HashMap<Integer, Instances> getDataGroupedByImage(
 			HashMap<Integer, RawImageInstance> rawInstances) {
-		HashMap<Integer, Instances> testData = new HashMap<>();
+		HashMap<Integer, Instances> entireData = new HashMap<>();
 
 		for (int id : rawInstances.keySet()) {
 
@@ -83,10 +88,10 @@ public class DataPreprocessor {
 				data.add(new DenseInstance(1.0d, feature));
 			}
 			data.setClassIndex(data.numAttributes() - 1);
-			testData.put(id, data);
+			entireData.put(id, data);
 		}
 
-		return testData;
+		return entireData;
 	}
 
 	private Instances createEmptyInstances() {
@@ -94,8 +99,13 @@ public class DataPreprocessor {
 		for (int i = 0; i < FEATURE_LENTH; i++) {
 			atts.add(new Attribute("att" + i));
 		}
-		atts.add(new Attribute("label"));
+		// Declare the class attribute along with its values
+		ArrayList<String> fvClassVal = new ArrayList<>(2);
+		fvClassVal.add("1");
+		fvClassVal.add("0");
+		atts.add(new Attribute("label", fvClassVal));
 		Instances data = new Instances("MyRelation", atts, 0);
+		data.setClassIndex(data.numAttributes() - 1);
 		return data;
 	}
 }
