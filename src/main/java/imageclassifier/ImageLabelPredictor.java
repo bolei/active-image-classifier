@@ -14,7 +14,7 @@ public class ImageLabelPredictor {
 			Instances onetestData) throws Exception {
 
 		// vote for label
-		HashMap<Double, Integer> labelCount = new HashMap<>();
+		HashMap<Double, Integer> labelCount = new HashMap<Double, Integer>();
 		Iterator<Instance> instanceIt = onetestData.iterator();
 		while (instanceIt.hasNext()) {
 			double clsLabel = classifier.classifyInstance(instanceIt.next());
@@ -33,7 +33,7 @@ public class ImageLabelPredictor {
 	public HashMap<Integer, Double> makeBatchPredictions(
 			AbstractClassifier classifier, HashMap<Integer, Instances> testData)
 			throws Exception {
-		HashMap<Integer, Double> prediction = new HashMap<>();
+		HashMap<Integer, Double> prediction = new HashMap<Integer, Double>();
 
 		for (int imgId : testData.keySet()) {
 			double label = makeOnePrediction(classifier, testData.get(imgId));

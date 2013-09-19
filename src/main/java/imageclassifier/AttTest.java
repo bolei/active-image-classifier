@@ -25,11 +25,11 @@ public class AttTest {
 		int i;
 
 		// 1. set up attributes
-		atts = new ArrayList<>();
+		atts = new ArrayList<Attribute>();
 		// - numeric
 		atts.add(new Attribute("att1"));
 		// - nominal
-		attVals = new ArrayList<>();
+		attVals = new ArrayList<String>();
 		for (i = 0; i < 5; i++)
 			attVals.add("val" + (i + 1));
 		atts.add(new Attribute("att2", attVals));
@@ -38,11 +38,11 @@ public class AttTest {
 		// - date
 		atts.add(new Attribute("att4", "yyyy-MM-dd"));
 		// - relational
-		attsRel = new ArrayList<>();
+		attsRel = new ArrayList<Attribute>();
 		// -- numeric
 		attsRel.add(new Attribute("att5.1"));
 		// -- nominal
-		attValsRel = new ArrayList<>();
+		attValsRel = new ArrayList<String>();
 		for (i = 0; i < 5; i++)
 			attValsRel.add("val5." + (i + 1));
 		attsRel.add(new Attribute("att5.2", attValsRel));

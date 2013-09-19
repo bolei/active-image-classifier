@@ -20,31 +20,34 @@ public class DataPreprocessor {
 	private static List<Integer> trainImgIds;
 
 	public List<Integer> getTrainImgIds(
-			HashMap<Integer, RawImageInstance> rawInstance, int labelSize) {
+			HashMap<Integer, RawImageInstance> rawInstance, int zeroImageSize,
+			int oneImageSize) {
 		if (trainImgIds == null) {
 			// shuffle
-			ArrayList<Integer> allIds = new ArrayList<>(rawInstance.keySet());
+			ArrayList<Integer> allIds = new ArrayList<Integer>(
+					rawInstance.keySet());
 			Collections.shuffle(allIds, new Random(System.currentTimeMillis()));
 
 			// select training data
-			List<Integer> zeroImageIds = new LinkedList<>();
-			List<Integer> oneImageIds = new LinkedList<>();
+			List<Integer> zeroImageIds = new LinkedList<Integer>();
+			List<Integer> oneImageIds = new LinkedList<Integer>();
 			Iterator<Integer> idIt = allIds.iterator();
 			int zeroIndex = 0, oneIndex = 0;
 			while (idIt.hasNext()
-					&& (zeroIndex < labelSize || oneIndex < labelSize)) {
+					&& (zeroIndex < zeroImageSize || oneIndex < oneImageSize)) {
 				int id = idIt.next();
 				if (rawInstance.get(id).getLabel() == 0
-						&& zeroIndex < labelSize) {
+						&& zeroIndex < zeroImageSize) {
 					zeroImageIds.add(id);
 					zeroIndex++;
 				}
-				if (rawInstance.get(id).getLabel() == 1 && oneIndex < labelSize) {
+				if (rawInstance.get(id).getLabel() == 1
+						&& oneIndex < oneImageSize) {
 					oneImageIds.add(id);
 					oneIndex++;
 				}
 			}
-			List<Integer> trainIds = new LinkedList<>(zeroImageIds);
+			List<Integer> trainIds = new LinkedList<Integer>(zeroImageIds);
 			trainIds.addAll(oneImageIds);
 			trainImgIds = trainIds;
 		}
@@ -77,7 +80,7 @@ public class DataPreprocessor {
 
 	public HashMap<Integer, Instances> getDataGroupedByImage(
 			HashMap<Integer, RawImageInstance> rawInstances) {
-		HashMap<Integer, Instances> entireData = new HashMap<>();
+		HashMap<Integer, Instances> entireData = new HashMap<Integer, Instances>();
 
 		for (int id : rawInstances.keySet()) {
 
@@ -95,12 +98,12 @@ public class DataPreprocessor {
 	}
 
 	private Instances createEmptyInstances() {
-		ArrayList<Attribute> atts = new ArrayList<>();
+		ArrayList<Attribute> atts = new ArrayList<Attribute>();
 		for (int i = 0; i < FEATURE_LENTH; i++) {
 			atts.add(new Attribute("att" + i));
 		}
 		// Declare the class attribute along with its values
-		ArrayList<String> fvClassVal = new ArrayList<>(2);
+		ArrayList<String> fvClassVal = new ArrayList<String>(2);
 		fvClassVal.add("0");
 		fvClassVal.add("1");
 		atts.add(new Attribute("label", fvClassVal));

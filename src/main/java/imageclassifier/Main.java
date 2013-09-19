@@ -35,9 +35,10 @@ public class Main {
 		HashMap<Integer, RawImageInstance> rawInstances = dataLoader
 				.loadImageData(prop.getProperty("dataFolder"));
 
-		int labelSize = Integer.parseInt(prop.getProperty("labelSize"));
+		int zeroImageSize = Integer.parseInt(prop.getProperty("zeroImageSize"));
+		int oneImageSize = Integer.parseInt(prop.getProperty("oneImageSize"));
 		List<Integer> trainIds = preProcessor.getTrainImgIds(rawInstances,
-				labelSize);
+				zeroImageSize, oneImageSize);
 
 		System.err.println("Generating training data...");
 		Instances trainData = preProcessor.getTrainingData(rawInstances,
@@ -48,7 +49,8 @@ public class Main {
 				.getDataGroupedByImage(rawInstances);
 
 		System.err.println("Generating test data...");
-		HashMap<Integer, Instances> testData = new HashMap<>(entireData);
+		HashMap<Integer, Instances> testData = new HashMap<Integer, Instances>(
+				entireData);
 		for (int id : trainIds) {
 			testData.remove(id);
 		}
@@ -81,7 +83,7 @@ public class Main {
 		System.err.println("Active learning...");
 
 		// begin active learning
-		Set<Double> labelSet = new HashSet<>();
+		Set<Double> labelSet = new HashSet<Double>();
 		for (int id : testData.keySet()) {
 			numImgSeen++;
 			Instances curInstances = testData.get(id);

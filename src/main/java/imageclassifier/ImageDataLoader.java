@@ -1,6 +1,5 @@
 package imageclassifier;
 
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -34,7 +33,7 @@ public class ImageDataLoader {
 		BufferedReader labelIn = new BufferedReader(new FileReader(labelFile));
 		BufferedReader trainIn = new BufferedReader(new FileReader(trainFile));
 
-		HashMap<Integer, RawImageInstance> data = new HashMap<>();
+		HashMap<Integer, RawImageInstance> data = new HashMap<Integer, RawImageInstance>();
 
 		try {
 			String mapLine, labelLine, trainLine;

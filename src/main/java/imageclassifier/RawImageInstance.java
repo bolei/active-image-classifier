@@ -6,7 +6,7 @@ import java.util.List;
 public class RawImageInstance {
 	private int imageId;
 	private int label;
-	private List<double[]> features = new LinkedList<>();
+	private List<double[]> features = new LinkedList<double[]>();
 
 	public RawImageInstance(int id, int label) {
 		this.imageId = id;
