@@ -17,8 +17,15 @@ public class MemberQueryLearner implements Learner {
 
 	private PredictionEvaluator evaluator = new PredictionEvaluator();
 
-	public MemberQueryLearner() throws Exception {
-		clusterer.setNumClusters(CLUSTER_NUM);
+	private int budget = 0;
+
+	public MemberQueryLearner(int budget) {
+		try {
+			clusterer.setNumClusters(CLUSTER_NUM);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		this.budget = budget;
 	}
 
 	@Override
@@ -26,7 +33,6 @@ public class MemberQueryLearner implements Learner {
 			HashMap<Integer, RawImageInstance> rawInstances,
 			HashMap<Integer, Instances> entireData, Instances trainData,
 			HashMap<Integer, Instances> testData) throws Exception {
-		int budget = 31; // 2^5 -1
 
 		ImageCluster initCluster = new ImageCluster(entireData);
 		TreeSet<ImageCluster> clusterSet = new TreeSet<ImageCluster>();

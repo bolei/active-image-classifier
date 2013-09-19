@@ -12,6 +12,9 @@ public final class LearnerFactory {
 		} else if (name.toLowerCase().equals("random")) {
 			return new RandomLearner(classifiers, Float.parseFloat(config
 					.getProperty("p")));
+		} else if (name.toLowerCase().equals("dh")) {
+			return new MemberQueryLearner(Integer.parseInt(config
+					.getProperty("budget")));
 		} else {
 			return null;
 		}
