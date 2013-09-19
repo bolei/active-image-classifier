@@ -6,7 +6,7 @@ import java.util.Set;
 import weka.classifiers.AbstractClassifier;
 import weka.core.Instances;
 
-public class CalActiveLearner extends AbstractLearner {
+public class CalActiveLearner extends AbstractStreamingLearner {
 
 	public CalActiveLearner(AbstractClassifier[] classifiers) {
 		super(classifiers);

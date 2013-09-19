@@ -2,23 +2,23 @@ package imageclassifier;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Properties;
 
 import weka.classifiers.AbstractClassifier;
 import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
 
-public abstract class AbstractLearner {
+public abstract class AbstractStreamingLearner implements Learner {
 
 	protected ImageLabelPredictor predictor = new ImageLabelPredictor();
 	protected PredictionEvaluator evaluator = new PredictionEvaluator();
 	protected AbstractClassifier[] classifiers;
 
-	public AbstractLearner(AbstractClassifier[] classifiers) {
+	public AbstractStreamingLearner(AbstractClassifier[] classifiers) {
 		this.classifiers = classifiers;
 	}
 
+	@Override
 	public void performClassification(
 			HashMap<Integer, RawImageInstance> rawInstances,
 			HashMap<Integer, Instances> entireData, Instances trainData,
@@ -86,21 +86,9 @@ public abstract class AbstractLearner {
 						accuracies);
 			}
 		}
-
 	}
 
 	protected abstract boolean shouldRequestLable(Instances curInstances)
 			throws Exception;
 
-	public static AbstractLearner createLearner(String name, Properties config,
-			AbstractClassifier[] classifiers) {
-		if (name.toLowerCase().equals("cal")) {
-			return new CalActiveLearner(classifiers);
-		} else if (name.toLowerCase().equals("random")) {
-			return new RandomLearner(classifiers, Float.parseFloat(config
-					.getProperty("p")));
-		} else {
-			return null;
-		}
-	}
 }

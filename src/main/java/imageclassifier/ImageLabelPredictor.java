@@ -26,8 +26,8 @@ public class ImageLabelPredictor {
 			}
 		}
 
-		double label = getVotedLable(labelCount);
-		return label;
+		Number label = getVotedLable(labelCount);
+		return (Double) label;
 	}
 
 	public HashMap<Integer, Double> makeBatchPredictions(
@@ -50,15 +50,34 @@ public class ImageLabelPredictor {
 		return rf;
 	}
 
-	private double getVotedLable(HashMap<Double, Integer> labelCount) {
-		double maxKey = 0d;
-		int maxValue = Integer.MIN_VALUE;
-		for (double key : labelCount.keySet()) {
-			if (labelCount.get(key) > maxValue) {
+	public static Number getVotedLable(
+			HashMap<? extends Number, ? extends Number> labelCount) {
+		Number maxKey = 0d;
+		Number maxValue = -1;
+		for (Number key : labelCount.keySet()) {
+			Number val = labelCount.get(key);
+			if (val.doubleValue() > maxValue.doubleValue()) {
 				maxValue = labelCount.get(key);
 				maxKey = key;
 			}
 		}
 		return maxKey;
+	}
+
+	public static HashMap<Double, Integer> getLableCount(
+			HashMap<Integer, Instances> images) {
+		HashMap<Double, Integer> labelCount = new HashMap<Double, Integer>();
+
+		for (int imgId : images.keySet()) {
+			if (images.get(imgId).instance(0).classIsMissing() == false) {
+				double label = images.get(imgId).instance(0).classValue();
+				if (labelCount.containsKey(label)) {
+					labelCount.put(label, labelCount.get(label) + 1);
+				} else {
+					labelCount.put(label, 1);
+				}
+			}
+		}
+		return labelCount;
 	}
 }
