@@ -62,8 +62,9 @@ public class Main {
 		System.err.println("Classifiers trained");
 
 		String learnerName = prop.getProperty("learner");
-		Learner learner = Learner.createLearner(learnerName);
-		learner.performClassification(rf, rawInstances, entireData, trainData,
+		AbstractLearner learner = AbstractLearner.createLearner(learnerName,
+				prop, rf);
+		learner.performClassification(rawInstances, entireData, trainData,
 				testData);
 
 	}
