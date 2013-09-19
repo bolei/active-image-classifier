@@ -1,5 +1,6 @@
 package imageclassifier;
 
+import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,7 +16,10 @@ import weka.core.Instances;
 public class Main {
 	public static void main(String[] args) throws Exception {
 
-		int numClassifiers = 2;
+		if (args.length == 0) {
+			System.err.println("usage: xxx");
+			return;
+		}
 
 		ImageDataLoader dataLoader = new ImageDataLoader();
 		DataPreprocessor preProcessor = new DataPreprocessor();
@@ -23,10 +27,9 @@ public class Main {
 		PredictionEvaluator evaluator = new PredictionEvaluator();
 
 		// load configurations
-		String paramFileName = "config.properties";
+		String paramFileName = args[0];
 		Properties prop = new Properties();
-		prop.load(Main.class.getClassLoader()
-				.getResourceAsStream(paramFileName));
+		prop.load(new FileInputStream(paramFileName));
 
 		System.err.println("Loading raw data...");
 		HashMap<Integer, RawImageInstance> rawInstances = dataLoader
@@ -52,11 +55,12 @@ public class Main {
 
 		System.err.println("Training classifiers...");
 
+		int numClassifiers = Integer.parseInt(prop
+				.getProperty("numClassifiers"));
 		// train classifier
 		RandomForest[] rf = new RandomForest[numClassifiers];
 		for (int i = 0; i < numClassifiers; i++) {
-			rf[i] = new RandomForest();
-			rf[i].setNumTrees(i * 10);
+			rf[i] = predictor.createRandomForest(i);
 			rf[i].buildClassifier(trainData);
 		}
 
@@ -66,7 +70,7 @@ public class Main {
 		float[] accuracies = new float[numClassifiers];
 		int numLabelRequest = 0, numImgSeen = 0;
 		for (int i = 0; i < numClassifiers; i++) {
-			HashMap<Integer, Integer> predictionResults = predictor
+			HashMap<Integer, Double> predictionResults = predictor
 					.makeBatchPredictions(rf[i], entireData);
 			accuracies[i] = evaluator.getPredictionAccuracy(rawInstances,
 					predictionResults);
@@ -77,18 +81,19 @@ public class Main {
 		System.err.println("Active learning...");
 
 		// begin active learning
-		Set<Integer> labelSet = new HashSet<>();
+		Set<Double> labelSet = new HashSet<>();
 		for (int id : testData.keySet()) {
 			numImgSeen++;
 			Instances curInstances = testData.get(id);
 			System.err.println("input image: " + id);
 			labelSet.clear();
 			for (int i = 0; i < numClassifiers; i++) {
-				int label = predictor.makeOnePrediction(rf[i], curInstances);
+				Double label = predictor.makeOnePrediction(rf[i], curInstances);
 				labelSet.add(label);
 			}
 			if (labelSet.size() > 1) { // disagree with the label
-				System.err.println("Classifiers disagree. request label");
+				System.err.println("Classifiers disagree. " + labelSet
+						+ "\nrequest label");
 				// request label
 				String labelStr = Integer.toString(rawInstances.get(id)
 						.getLabel());
@@ -111,7 +116,7 @@ public class Main {
 				System.err.println("Train again the classifiers...");
 				// train again
 				for (int i = 0; i < numClassifiers; i++) {
-					rf[i] = new RandomForest();
+					rf[i] = predictor.createRandomForest(i);
 					rf[i].buildClassifier(trainData);
 				}
 
@@ -119,14 +124,13 @@ public class Main {
 				// reevaluate accuracies
 				Arrays.fill(accuracies, 0f);
 				for (int i = 0; i < numClassifiers; i++) {
-					HashMap<Integer, Integer> predictionResults = predictor
+					HashMap<Integer, Double> predictionResults = predictor
 							.makeBatchPredictions(rf[i], entireData);
 					accuracies[i] = evaluator.getPredictionAccuracy(
 							rawInstances, predictionResults);
 				}
 				evaluator.printEvaluationResult(numImgSeen, numLabelRequest,
 						accuracies);
-
 			}
 		}
 

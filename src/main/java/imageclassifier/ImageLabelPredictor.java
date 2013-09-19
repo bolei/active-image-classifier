@@ -2,13 +2,15 @@ package imageclassifier;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Random;
 
 import weka.classifiers.AbstractClassifier;
+import weka.classifiers.trees.RandomForest;
 import weka.core.Instance;
 import weka.core.Instances;
 
 public class ImageLabelPredictor {
-	public int makeOnePrediction(AbstractClassifier classifier,
+	public double makeOnePrediction(AbstractClassifier classifier,
 			Instances onetestData) throws Exception {
 
 		// vote for label
@@ -24,23 +26,31 @@ public class ImageLabelPredictor {
 			}
 		}
 
-		int label = getVotedLable(labelCount);
+		double label = getVotedLable(labelCount);
 		return label;
 	}
 
-	public HashMap<Integer, Integer> makeBatchPredictions(
+	public HashMap<Integer, Double> makeBatchPredictions(
 			AbstractClassifier classifier, HashMap<Integer, Instances> testData)
 			throws Exception {
-		HashMap<Integer, Integer> prediction = new HashMap<>();
+		HashMap<Integer, Double> prediction = new HashMap<>();
 
 		for (int imgId : testData.keySet()) {
-			int label = makeOnePrediction(classifier, testData.get(imgId));
+			double label = makeOnePrediction(classifier, testData.get(imgId));
 			prediction.put(imgId, label);
 		}
 		return prediction;
 	}
 
-	private int getVotedLable(HashMap<Double, Integer> labelCount) {
+	public RandomForest createRandomForest(int seed) {
+		RandomForest rf = new RandomForest();
+		rf.setNumTrees((int) Math.pow(2, seed + 6));
+		rf.setNumFeatures(10 * seed + 20);
+		rf.setSeed(new Random().nextInt());
+		return rf;
+	}
+
+	private double getVotedLable(HashMap<Double, Integer> labelCount) {
 		double maxKey = 0d;
 		int maxValue = Integer.MIN_VALUE;
 		for (double key : labelCount.keySet()) {
@@ -49,6 +59,6 @@ public class ImageLabelPredictor {
 				maxKey = key;
 			}
 		}
-		return (int) maxKey;
+		return maxKey;
 	}
 }

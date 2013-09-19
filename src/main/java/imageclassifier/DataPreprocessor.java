@@ -101,8 +101,8 @@ public class DataPreprocessor {
 		}
 		// Declare the class attribute along with its values
 		ArrayList<String> fvClassVal = new ArrayList<>(2);
-		fvClassVal.add("1");
 		fvClassVal.add("0");
+		fvClassVal.add("1");
 		atts.add(new Attribute("label", fvClassVal));
 		Instances data = new Instances("MyRelation", atts, 0);
 		data.setClassIndex(data.numAttributes() - 1);

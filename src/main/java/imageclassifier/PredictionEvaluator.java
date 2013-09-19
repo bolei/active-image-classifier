@@ -5,7 +5,7 @@ import java.util.HashMap;
 public class PredictionEvaluator {
 	public float getPredictionAccuracy(
 			HashMap<Integer, RawImageInstance> rawInstances,
-			HashMap<Integer, Integer> predictionResults) {
+			HashMap<Integer, Double> predictionResults) {
 		int total = predictionResults.size();
 		int correct = 0;
 		for (int id : predictionResults.keySet()) {
