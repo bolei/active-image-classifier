@@ -42,7 +42,7 @@ public class ImageLabelPredictor {
 		return prediction;
 	}
 
-	public RandomForest createRandomForest(int seed) {
+	public static RandomForest createRandomForest(int seed) {
 		RandomForest rf = new RandomForest();
 		rf.setNumTrees((int) Math.pow(2, seed + 6));
 		rf.setNumFeatures(10 * seed + 20);
